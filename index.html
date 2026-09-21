@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+<head>
+  <title>My To-Do App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2ff;
+      color: #1e293b;
+      margin: 0;
+      padding: 40px 20px;
+    }
+
+    .app {
+      max-width: 560px;
+      margin: auto;
+      background: white;
+      padding: 32px;
+      border-radius: 18px;
+      box-shadow: 0 12px 35px rgba(30, 41, 59, 0.15);
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      color: #2563eb;
+    }
+
+    .subtitle {
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+
+    .add-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    input, button {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+
+    input {
+      flex: 1;
+      border: 1px solid #cbd5e1;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    .delete {
+      background: #dc2626;
+    }
+
+    .clear {
+      background: #64748b;
+    }
+
+    .dark-button {
+      background: #334155;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    li span {
+      flex: 1;
+    }
+
+    .done {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+
+    #taskCount {
+      color: #64748b;
+    }
+
+    .dark {
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+
+    .dark .app {
+      background: #1e293b;
+    }
+
+    .dark input {
+      background: #334155;
+      color: white;
+      border-color: #475569;
+    }
+
+    .dark .subtitle,
+    .dark #taskCount {
+      color: #cbd5e1;
+    }
+
+    .dark li {
+      border-color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="top-row">
+      <h1>My To-Do List</h1>
+      <button class="dark-button" onclick="toggleTheme()">Dark mode</button>
+    </div>
+
+    <p class="subtitle">Small steps, big progress.</p>
+
+    <div class="add-row">
+      <input id="taskInput" placeholder="Add a task" onkeydown="if (event.key === 'Enter') addTask()">
+      <button onclick="addTask()">Add</button>
+    </div>
+
+    <ul id="taskList"></ul>
+
+    <p id="taskCount"></p>
+    <button class="clear" onclick="clearCompleted()">Clear completed tasks</button>
+  </main>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark");
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+
+      let darkMode = document.body.classList.contains("dark");
+      localStorage.setItem("darkMode", darkMode);
+    }
+
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function showTasks() {
+      let list = document.getElementById("taskList");
+      list.innerHTML = "";
+
+      tasks.forEach(function (task, index) {
+        let item = document.createElement("li");
+
+        let taskText = document.createElement("span");
+        taskText.textContent = task.text;
+
+        if (task.done) {
+          taskText.classList.add("done");
+        }
+
+        let doneButton = document.createElement("button");
+        doneButton.textContent = task.done ? "Undo" : "Done";
+
+        doneButton.onclick = function () {
+          tasks[index].done = !tasks[index].done;
+          saveTasks();
+          showTasks();
+        };
+
+        let deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.classList.add("delete");
+
+        deleteButton.onclick = function () {
+          tasks.splice(index, 1);
+          saveTasks();
+          showTasks();
+        };
+
+        item.appendChild(taskText);
+        item.appendChild(doneButton);
+        item.appendChild(deleteButton);
+        list.appendChild(item);
+      });
+
+      let remaining = tasks.filter(function (task) {
+        return !task.done;
+      }).length;
+
+      document.getElementById("taskCount").textContent =
+        remaining + " task(s) left";
+    }
+
+    function addTask() {
+      let input = document.getElementById("taskInput");
+      let taskText = input.value.trim();
+
+      if (taskText === "") {
+        return;
+      }
+
+      tasks.push({
+        text: taskText,
+        done: false
+      });
+
+      saveTasks();
+      showTasks();
+      input.value = "";
+    }
+
+    function clearCompleted() {
+      tasks = tasks.filter(function (task) {
+        return !task.done;
+      });
+
+      saveTasks();
+      showTasks();
+    }
+
+    showTasks();
+  </script>
+</body>
+</html>
